@@ -19,11 +19,40 @@ namespace RoomLoan.Api.Controllers
 
         // GET: api/roomloans
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoomLoanEntity>>> GetRoomLoans()
+        public async Task<ActionResult<IEnumerable<RoomLoanEntity>>> GetRoomLoans(
+            [FromQuery] string? status,
+            [FromQuery] string? q,
+            [FromQuery] string? sortBy = "createdAt",
+            [FromQuery] string? order = "desc"
+        )
         {
-            return await _context.RoomLoans
-                .OrderByDescending(x => x.CreatedAt)
-                .ToListAsync();
+            IQueryable<RoomLoanEntity> query = _context.RoomLoans;
+
+            // Filter by status
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(x => x.Status == status);
+            }
+
+            // Search by keyword (room name or borrower name)
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var keyword = q.ToLower();
+                query = query.Where(x =>
+                    x.RoomName.ToLower().Contains(keyword) ||
+                    x.BorrowerName.ToLower().Contains(keyword)
+                );
+            }
+
+            // Sorting
+            if (sortBy?.ToLower() == "createdat")
+            {
+                query = order?.ToLower() == "asc"
+                    ? query.OrderBy(x => x.CreatedAt)
+                    : query.OrderByDescending(x => x.CreatedAt);
+            }
+
+            return await query.ToListAsync();
         }
 
         // GET: api/roomloans/5
