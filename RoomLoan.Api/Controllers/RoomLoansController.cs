@@ -60,29 +60,28 @@ namespace RoomLoan.Api.Controllers
         public async Task<ActionResult<RoomLoanEntity>> GetRoomLoan(int id)
         {
             var roomLoan = await _context.RoomLoans.FindAsync(id);
-            if (roomLoan == null) return NotFound();
+
+            if (roomLoan == null)
+                return NotFound();
+
             return roomLoan;
         }
 
         // POST: api/roomloans
-        // Pakai DTO supaya client tidak bisa mengirim Id
         [HttpPost]
-        public async Task<ActionResult<RoomLoanEntity>> CreateRoomLoan([FromBody] CreateRoomLoanDto dto)
+        public async Task<IActionResult> CreateRoomLoan([FromBody] CreateRoomLoanDto dto)
         {
-            // Validasi tambahan (opsional tapi bagus)
-            if (dto.EndTime <= dto.StartTime)
-            {
-                return BadRequest(new { message = "EndTime harus lebih besar dari StartTime." });
-            }
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
             var entity = new RoomLoanEntity
             {
-                RoomName = dto.RoomName,
-                BorrowerName = dto.BorrowerName,
+                RoomName = dto.RoomName.Trim(),
+                BorrowerName = dto.BorrowerName.Trim(),
                 StartTime = dto.StartTime,
                 EndTime = dto.EndTime,
                 Status = "Pending",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             _context.RoomLoans.Add(entity);
@@ -95,15 +94,12 @@ namespace RoomLoan.Api.Controllers
         [HttpPut("{id:int}/status")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
         {
-            var roomLoan = await _context.RoomLoans.FindAsync(id);
-            if (roomLoan == null) return NotFound();
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
-            // (Opsional) batasi status yang boleh
-            var allowed = new[] { "Pending", "Approved", "Rejected" };
-            if (!allowed.Contains(dto.Status))
-            {
-                return BadRequest(new { message = "Status harus salah satu dari: Pending, Approved, Rejected." });
-            }
+            var roomLoan = await _context.RoomLoans.FindAsync(id);
+            if (roomLoan == null)
+                return NotFound();
 
             roomLoan.Status = dto.Status;
             await _context.SaveChangesAsync();
@@ -116,7 +112,8 @@ namespace RoomLoan.Api.Controllers
         public async Task<IActionResult> DeleteRoomLoan(int id)
         {
             var roomLoan = await _context.RoomLoans.FindAsync(id);
-            if (roomLoan == null) return NotFound();
+            if (roomLoan == null)
+                return NotFound();
 
             _context.RoomLoans.Remove(roomLoan);
             await _context.SaveChangesAsync();
