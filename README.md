@@ -114,18 +114,3 @@ Pengembangan dilakukan menggunakan workflow Git sebagai berikut:
 Catatan
 1. Pengujian API dilakukan menggunakan Swagger UI
 2. Backend ini disiapkan untuk diintegrasikan dengan frontend berbasis React + TypeScript
-
----
-
-## 🔥 LANGKAH SETELAH INI (JANGAN DILEWATI)
-Setelah copas README di repo backend:
-
-```bash
-git add README.md
-git commit -m "docs: add backend README"
-git push
-Lalu:
-3. buat PR ke develop
-4. merge PR
-5. pindahkan Issue backend → Done di Project Board
-````
